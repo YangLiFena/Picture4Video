@@ -15,7 +15,12 @@
   - 安装PyMySQL，pip install PyMySQL==1.1.0  
 
 ### 项目结构
-+ code/model存放模型权重 code/milvus/docker-compose.yml存放Milvus信息 code/Crawer_Video存放待提取关键帧的视频 code/pics存放待检索的的图片 code/utils包存放使用到的工具类 code/Frames 存放所有视频的关键帧（该文件夹会自动生成）
++ code/model存放模型权重
++ code/milvus/docker-compose.yml存放Milvus信息
++ code/Crawer_Video存放待提取关键帧的视频
++ code/pics存放待检索的的图片
++ code/utils包存放使用到的工具类
++ code/Frames 存放所有视频的关键帧（该文件夹会自动生成）
 + code/Add.py 调用add_videos2milvus方法增量更新视频，将增量视频的关键帧特征向量存储至Milvus数据库中。
 + code/Add2Milvus.py 提取视频关键帧，并将其保存在Frames文件夹中。读取视频关键帧并将其转换成特征向量，传入Milvus数据库中存储。
 + code/Search.py 调用SearchVideoByOnePic方法进行以1张图片搜视频。
