@@ -1,9 +1,9 @@
 import pymysql
 import pandas as pd
 
-mysql_host = '172.17.171.161'
+mysql_host = '127.0.0.1'
 mysql_db = 'videos'
-mysql_user = 'user'
+mysql_user = 'root'
 mysql_pwd = '123456'
 
 video_table = 'video'
@@ -30,6 +30,12 @@ class MYSQL:
         print(self.connect)
         self.cursor = self.connect.cursor()
 
+    def close(self):
+        # 关闭游标对象
+        self.cursor.close()
+        # 关闭连接对象
+        self.connect.close()
+
     def insert_table_frame(self, data_json):
         sql = "insert into {}(`FrameID`, `FramePosition`,`FramePath`) VALUES (%s, %s,%s)".format(frame_table)
         try:
@@ -39,6 +45,7 @@ class MYSQL:
         except Exception as e:
             print('e= ', e)
             print('数据插入错误')
+            self.connect.rollback()  #数据回滚
 
     def insert_table_fv(self, data_json):
         sql = "insert into {}(`VideoMD5`, `FrameID`) VALUES (%s, %s)".format(frame_video_table)
@@ -49,6 +56,7 @@ class MYSQL:
         except Exception as e:
             print('e= ', e)
             print('数据插入错误')
+            self.connect.rollback()
 
     def insert_table_video(self, data_json):
         sql = "insert into {}(`VideoMD5`, `VideoPath`) VALUES (%s, %s)".format(video_table)
@@ -59,6 +67,7 @@ class MYSQL:
         except Exception as e:
             print('e= ', e)
             print('数据插入错误')
+            self.connect.rollback()
 
     def delete_data(self, data_json):
         # 删除video库中数据
@@ -70,6 +79,7 @@ class MYSQL:
         except Exception as e:
             print('e= ', e)
             print('video库中数据删除错误')
+            self.connect.rollback()
 
         # 在frame_video库中查询frameid
         sql2 = "SELECT FrameID FROM {} WHERE VideoMD5 = %s".format(frame_video_table)
@@ -90,6 +100,7 @@ class MYSQL:
         except Exception as e:
             print('e= ', e)
             print('frame_video库中数据删除错误')
+            self.connect.rollback()
 
         # 根据查询到的FrameID删除frame库中数据
         frame_df = pd.DataFrame({'FrameID': FrameID})
@@ -103,6 +114,7 @@ class MYSQL:
             except Exception as e:
                 print('e= ', e)
                 print('frame库中数据删除错误')
+                self.connect.rollback()
         return FrameID
 
     def query_data(self, data_json):
@@ -168,6 +180,7 @@ def USE_MYSQL_Frame(FrameID, FramePosition, FramePath):
     data_json = df.to_dict(orient='records')
     for dt in data_json:
         mysql.insert_table_frame(dt)
+    mysql.close()
 
 
 # ----------------------------insert Frame_Video table
@@ -180,6 +193,7 @@ def USE_MYSQL_FV(VideoMD5, FrameID):
     data_json = df.to_dict(orient='records')
     for dt in data_json:
         mysql.insert_table_fv(dt)
+    mysql.close()
 
 
 # ----------------------------insert Video table
@@ -192,6 +206,7 @@ def USE_MYSQL_Video(VideoMD5, VideoPath):
     data_json = df.to_dict(orient='records')
     for dt in data_json:
         mysql.insert_table_video(dt)
+    mysql.close()
 
 
 # ----------------------------delete Video/Frame_Video/Frame table
@@ -209,6 +224,7 @@ def USE_MYSQL_DELETE(VideoMD5):
     for i in frameid_lists:
         for item in i:
             total_list.append(item)
+    mysql.close()
     return total_list
 
 
@@ -219,8 +235,8 @@ def USE_MYSQL_QUERY(VideoMD5):
     data_json = df.to_dict(orient='records')
     for dt in data_json:
         judge = mysql.query_data(dt)
-        return judge
-
+    mysql.close()
+    return judge
 
 # ----------------------------query Frame/Video table
 def USE_MYSQL_QUERYFrame(FrameID):
@@ -238,4 +254,5 @@ def USE_MYSQL_QUERYFrame(FrameID):
         vids.append(vid)
         vpaths.append(vpath)
         framepositions.append(fposition)
+    mysql.close()
     return vids, vpaths, framepositions

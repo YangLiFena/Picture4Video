@@ -29,8 +29,9 @@
 ### 参考资料
 + [企业级的以图搜图实战——milvus+minio+gradio+resnet](https://zhuanlan.zhihu.com/p/591672698)
 + [milvus官方文档](https://milvus.io/docs)
-
-
++ [视频流编码方法-H264]()
++ [提取视频关键帧算法：基于H264视频流编码](https://pyav.org/docs/8.0.1/cookbook/basics.html#saving-keyframes)（pyav库）
++ [Python连接MySQL数据库方法介绍](https://zhuanlan.zhihu.com/p/79021906)
   
 
 
