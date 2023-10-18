@@ -26,6 +26,10 @@
 + code/Search.py 调用SearchVideoByOnePic方法进行以1张图片搜视频。
 + code/Delete.py 调用delete_frame_by_v_id方法根据视频id列表删除Milvus数据库中相应的视频的关键帧的特征向量。
 
+### 参考资料
++ [企业级的以图搜图实战——milvus+minio+gradio+resnet](https://zhuanlan.zhihu.com/p/591672698)
++ [milvus官方文档](https://milvus.io/docs)
+
 
   
 
