@@ -27,12 +27,19 @@
 + code/Delete.py 调用delete_frame_by_v_id方法根据视频id列表删除Milvus数据库中相应的视频的关键帧的特征向量。
 
 ### 参考资料
-+ [企业级的以图搜图实战——milvus+minio+gradio+resnet](https://zhuanlan.zhihu.com/p/591672698)
++ [企业级的以图搜图实战——milvus+minio+gradio+resnet(知乎帖子)](https://zhuanlan.zhihu.com/p/591672698)
+  - [项目地址](https://github.com/wp931120/picSearch)
 + [milvus官方文档](https://milvus.io/docs)
-+ [视频流编码方法-H264](https://blog.csdn.net/hello_1995/article/details/122091747)
+  - [连接Milvus](https://milvus.io/docs/manage_connection.md)
+  - [数据库管理](https://milvus.io/docs/manage_databases.md)
+  - [表管理](https://milvus.io/docs/create_collection.md)
+  - [数据管理](https://milvus.io/docs/insert_data.md)
+  - [创建索引](https://milvus.io/docs/build_index.md)
+  - [向量搜索](https://milvus.io/docs/search.md)
++ [视频流编码方法-H264(博客)](https://blog.csdn.net/hello_1995/article/details/122091747)
 + [提取视频关键帧算法：基于H264视频流编码](https://pyav.org/docs/8.0.1/cookbook/basics.html#saving-keyframes)（pyav库）
-+ [Python连接MySQL数据库方法介绍](https://zhuanlan.zhihu.com/p/79021906)
-+ [视频在库检索-哈希编码](https://blog.csdn.net/weixin_50153843/article/details/131027348)  
++ [Python连接MySQL数据库方法介绍(知乎帖子)](https://zhuanlan.zhihu.com/p/79021906)
++ [视频在库检索-哈希编码(博客)](https://blog.csdn.net/weixin_50153843/article/details/131027348)  
 
 
 
