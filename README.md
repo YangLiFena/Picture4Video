@@ -8,6 +8,16 @@
   - Milvus可视化管理工具 Attu: https://github.com/zilliztech/attu/blob/main/doc/zh-CN/attu_install-docker.md
 + 项目环境配置
   安装annconda，后创建python版本为3.8的虚拟环境，之后在该虚拟环境内安装以下包
+  - tensorflow-gpu安装及验证
+    - conda install cudatoolkit=10.1 cudnn=7.6.5
+    - pip install tensorflow-gpu==2.2.0
+    - pip install protobuf==3.20.3
+    - pip install numpy==1.20.3
+    - 验证tensorflow-gpu是否安装成功
+      - python
+      - import tensorflow as tf
+      - tf.config.experimental.list_physical_devices('GPU')
+      ![image](tensorflow-gpu安装成功.png)
   - 安装tensorflow-gpu==2.2.0
   - 安装opencv，pip install opencv-python==4.8.0.76
   - 安装av， pip install av==8.0.3
