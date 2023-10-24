@@ -77,8 +77,9 @@ def GetVideoFrames(videos_path_list):
 def GetFramesFeature(frame_path_list,weight_path) :
     path=weight_path
     starttime=time.time()
-    model = tf.keras.applications.ResNet50(include_top=False,weights=None)
-    model.load_weights(path)
+    with tf.device('/gpu:0'):
+        model = tf.keras.applications.ResNet50(include_top=False,weights=None)
+        model.load_weights(path)
     endtime=time.time()
     print("加载模型耗时",endtime-starttime,' s')
     starttime=time.time()
@@ -97,8 +98,7 @@ def GetFramesFeature(frame_path_list,weight_path) :
         # print(y)
         y = tf.keras.applications.resnet50.preprocess_input(y)
         # print(type(y), y)
-        with tf.device('/gpu:0'):
-            y = model.predict(y)
+        y = model.predict(y)
         # y = model(y)
         # print(y.shape)
         result = tf.keras.layers.GlobalAveragePooling2D()(y)
