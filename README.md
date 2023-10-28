@@ -25,6 +25,7 @@
 
 ### 项目结构
 + code/model存放模型权重
++ code/RetrievalVideos 存放待进行视频在库检索的视频
 + code/milvus/docker-compose.yml存放Milvus信息
 + code/Crawer_Video存放待提取关键帧的视频
 + code/pics存放待检索的的图片
@@ -34,6 +35,7 @@
 + code/Add2Milvus.py 提取视频关键帧，并将其保存在Frames文件夹中。读取视频关键帧并将其转换成特征向量，传入Milvus数据库中存储。
 + code/Search.py 调用SearchVideoByOnePic方法进行以1张图片搜视频。
 + code/Delete.py 调用delete_frame_by_v_id方法根据视频id列表删除Milvus数据库中相应的视频的关键帧的特征向量。
++ code/VideoRetrieval.py 调用VideoRetrieval方法根据视频路径列表进行视频在库检索。
 
 ### 参考资料
 + [企业级的以图搜图实战——milvus+minio+gradio+resnet(知乎帖子)](https://zhuanlan.zhihu.com/p/591672698)

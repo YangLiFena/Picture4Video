@@ -240,4 +240,24 @@ def SearchVideoByOnePic(collection,weight_path,pic_path,similarity,number):
     else :
         print("error")
         return [],[]
-
+#参数定义
+#video_path_list:待进行视频在库检测的视频的路径列表
+def VideoRetrieval(video_path_list):
+    result=[]
+    for video_path in video_path_list:
+        if video_path.split('/')[-1].split('.')[-1] == 'mp4':
+            sha256_hash = compute_sha256(video_path)  # 采用MD5对视频进行编码
+            search_video_id = str(sha256_hash)
+            flag=USE_MYSQL_QUERY([search_video_id])
+            #将search_video_id送入关系型数据库中检索，如果返回True,则说明已经存在该视频，返回False则不存在该视频
+            if flag==False:
+                result.append({
+                    "video_path": video_path,
+                    "isIn": False
+                })
+            else :
+                result.append({
+                    "video_path":video_path,
+                    "isIn":True
+                               })
+    return result
