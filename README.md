@@ -28,6 +28,7 @@
 + code/RetrievalVideos 存放待进行视频在库检索的视频
 + code/milvus/docker-compose.yml存放Milvus信息
 + code/Crawer_Video存放待提取关键帧的视频
++ code/AddVideos存放增量更新的视频
 + code/pics存放待检索的的图片
 + code/utils包存放使用到的工具类
 + code/Frames 存放所有视频的关键帧（该文件夹会自动生成）

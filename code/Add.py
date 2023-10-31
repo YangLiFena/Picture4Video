@@ -9,7 +9,7 @@ connections.connect("default", host="localhost", port="19530",user="root",passwo
 #创建Collection
 my_milvus=create_collection("p4v")
 #增量更新
-Root_Path='./10videos' #增量更新的视频根路径
+Root_Path='./AddVideos' #增量更新的视频根路径
 file_names = os.listdir(Root_Path)
 video_path_list=[]
 for file_name in file_names:
