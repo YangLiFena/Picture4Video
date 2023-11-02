@@ -77,9 +77,14 @@ def GetVideoFrames(videos_path_list):
 def GetFramesFeature(frame_path_list,weight_path) :
     path=weight_path
     starttime=time.time()
-    with tf.device('/gpu:0'):
-        model = tf.keras.applications.ResNet50(include_top=False,weights=None)
-        model.load_weights(path)
+    # 获取服务器所有可用的设备
+    devices = tf.config.list_physical_devices('GPU')
+    # 当服务器包含多个GPU设备时，使用以下指令指定想要使用的设备编号，例如：devices[0], devices[1]表示使用编号为0和1的两张显卡
+    # visible_devices = [devices[0], devices[1]]
+    visible_devices = [devices[0]]
+    tf.config.experimental.set_visible_devices(visible_devices, 'GPU')
+    model = tf.keras.applications.ResNet50(include_top=False,weights=None)
+    model.load_weights(path)
     endtime=time.time()
     print("加载模型耗时",endtime-starttime,' s')
     starttime=time.time()

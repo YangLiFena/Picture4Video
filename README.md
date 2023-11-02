@@ -22,7 +22,7 @@
   - 安装av, pip install av==8.0.3 -i https://pypi.tuna.tsinghua.edu.cn/simple
   - 安装pymilvus, 版本要符合跟Milvus版本的对于关系，pip install pymilvus==2.2.9 -i https://pypi.tuna.tsinghua.edu.cn/simple 
   - 安装PyMySQL, pip install PyMySQL==1.1.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
-  - 安装Pillow, pip install Pillow 
+  - 安装Pillow, pip install Pillow -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ### 项目结构
 + code/model存放模型权重
