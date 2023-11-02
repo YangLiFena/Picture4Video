@@ -5,9 +5,14 @@ import tensorflow as tf
 import time
 import hashlib
 import os
-
 from utils.milvus_utils import search_data, insert_data, build_index
 from utils.mysql_utils import USE_MYSQL_QUERY,USE_MYSQL_DELETE,USE_MYSQL_Video,USE_MYSQL_FV,USE_MYSQL_Frame
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3' # 配置tensorflow日志等级
+# 0：显示所有日志（默认等级）
+# 1：显示info、warning和error日志
+# 2：显示warning和error信息
+# 3：显示error日志信息
+
 # L2距离归一化为相似度
 def Normalized_Euclidean_Distance(L2,dim=2048):
     return 1/(1+L2/dim)
