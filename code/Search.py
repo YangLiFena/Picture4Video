@@ -4,13 +4,13 @@ from utils.milvus_utils import create_collection
 from utils.method import SearchVideoByOnePic,delete_frame_by_v_id,add_videos2milvus
 from utils.mysql_utils import USE_MYSQL_QUERYFrame
 #初始化
-weight_path="./model/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5"#提取特征模型权重的路径
+weight_path="./model/resnet50-19c8e357.pth"#提取特征模型权重的路径
 #设置Milvus连接参数
-connections.connect("default", host="localhost", port="19530",user="root",password="123456")
+connections.connect("default", host="127.0.0.1", port="19530",user="root",password="123456")
 #创建Collection
-my_milvus=create_collection("p4v")
+my_milvus=create_collection("p4v_pytorch")
 #获取待检索的图片的特征向量
-Pic_Path='./pics/6c8ea9c3d67a9000bf99ba0c207a0e4d3004aad0dbf1255b12696610fa0e40e3-2.jpg'
+Pic_Path='./pics/1.png'
 startime=time.time()
 distance_list,frame_id_list=SearchVideoByOnePic(collection=my_milvus,weight_path=weight_path,pic_path=Pic_Path,similarity=0.9,number=10)
 endtime=time.time()

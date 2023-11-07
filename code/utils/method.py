@@ -1,10 +1,15 @@
 import av
 import numpy as np
 from PIL import Image
-import tensorflow as tf
+import torch
+import torchvision
+import torchvision.transforms as transforms
 import time
 import hashlib
 import os
+
+from torch import nn
+
 from utils.milvus_utils import search_data, insert_data, build_index
 from utils.mysql_utils import USE_MYSQL_QUERY,USE_MYSQL_DELETE,USE_MYSQL_Video,USE_MYSQL_FV,USE_MYSQL_Frame
 os.environ['TF_CPP_MIN_LOG_LEVEL']='3' # 配置tensorflow日志等级
@@ -79,73 +84,95 @@ def GetVideoFrames(videos_path_list):
 #功能：批量获取视频关键帧特征向量，返回特征向量数组
 #输入参数定义：
 #frame_path_list：视频关键帧路径数组
-def GetFramesFeature(frame_path_list,weight_path) :
-    path=weight_path
-    starttime=time.time()
-    # 获取服务器所有可用的设备
-    devices = tf.config.list_physical_devices('GPU')
-    # 当服务器包含多个GPU设备时，使用以下指令指定想要使用的设备编号，例如：devices[0], devices[1]表示使用编号为0和1的两张显卡
-    # visible_devices = [devices[0], devices[1]]
-    visible_devices = [devices[0]]
-    tf.config.experimental.set_visible_devices(visible_devices, 'GPU')
-    model = tf.keras.applications.ResNet50(include_top=False,weights=None)
-    model.load_weights(path)
-    endtime=time.time()
-    print("加载模型耗时",endtime-starttime,' s')
-    starttime=time.time()
-    feature_list=[] #特征向量数组
-    for frame_path in frame_path_list :
-        # if distant:
-        #     content = requests.get(url, stream=True).content
-        #     byteStream = io.BytesIO(content)
-        #     image = Image.open(byteStream)
-        # else:
-        #     image = Image.open(url)
-        image=Image.open(frame_path)
-        image = image.resize([224, 224]).convert('RGB')
-        y = tf.keras.preprocessing.image.img_to_array(image)
-        y = np.expand_dims(y, axis=0)
-        # print(y)
-        y = tf.keras.applications.resnet50.preprocess_input(y)
-        # print(type(y), y)
-        y = model.predict(y)
-        # y = model(y)
-        # print(y.shape)
-        result = tf.keras.layers.GlobalAveragePooling2D()(y)
-        feature = [x for x in result.numpy()[0].tolist()]
+def GetFramesFeature(frame_path_list, weight_path):
+    # 加载ResNet50模型
+    starttime = time.time()
+    model = torchvision.models.resnet50(weights=None)
+    # 加载预训练的权重
+    model.load_state_dict(torch.load(weight_path))
+    model = nn.Sequential(*list(model.children())[:-2])
+    model=model.cuda()
+    endtime = time.time()
+    print("加载模型耗时", endtime - starttime, 's')
+    # 将模型置于评估模式
+    model.eval()
+
+    # 定义数据预处理
+    preprocess = transforms.Compose([
+        transforms.Resize([224, 224]),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    # 提取每个帧的特征向量
+    feature_list = []
+    starttime = time.time()
+    for frame_path in frame_path_list:
+        # 打开图像并进行预处理
+        image = Image.open(frame_path).convert("RGB")
+        image = preprocess(image)
+
+        # 在第0个维度上增加batch维度
+        image = image.unsqueeze(0)
+        # print('='*30)
+        # print(image.shape)
+        # 使用模型提取特征
+        with torch.no_grad():
+            image=image.cuda()
+            feature = model(image)
+            # print(feature.shape)
+            feature = torch.nn.functional.adaptive_avg_pool2d(feature, (1,1))
+            # print(feature.shape)
+            feature = feature.cpu().flatten().numpy()
+            # print('='*30)
+            feature = feature.tolist()
+
         feature_list.append(feature)
-    endtime=time.time()
-    print("提取特征向量耗时",endtime-starttime,' s')
+    endtime = time.time()
+    print("提取特征向量耗时", endtime - starttime, 's')
     return feature_list
 
-
-#功能：对新增视频进行插入操作，返回插入结果
-#输入参数定义：
-#collection：Milvus中的Collection
-#video_path_list:新增视频的路径数组
-#weight_path:提取特征向量的模型的路径
-def add_videos2milvus(collection,video_path_list,weight_path):
+#参数定义：
+#vides_path_list：视频路径数组
+def CreateAndInsert2Database(video_path_list):
     # 调用提取视频关键帧函数进行视频关键帧的提取
     result=[]
+    video_path_dict={} #v_id和v_path的对应关系字典
+    repeat_path_list=[] #插入视频中存在重复的视频的视频的路径
     real_video_path_list=[] #真正需要插入的视频路径数组
     for video_path in video_path_list:
         if video_path.split('/')[-1].split('.')[-1] == 'mp4':
             sha256_hash = compute_sha256(video_path)  # 采用MD5对视频进行编码
             search_video_id = str(sha256_hash)
             flag=USE_MYSQL_QUERY([search_video_id])
-            #将search_video_id送入关系型数据库中检索，如果返回True,则说明已经存在该视频，不插入，返回False则进行插入
+            #将search_video_id送入关系型数据库中检索，如果返回True,则说明已经存在该视频，不插入，返回False则进行后续的判断
             if flag==False:
-                real_video_path_list.append(video_path)
+                # 通过video_path_dict字典来保存v_id和v_path的对应关系来确保重复视频不会被插入，并且用repeat_path_list来保存这些重复的视频的路径
+                if search_video_id in video_path_dict:
+                    repeat_path_list.append(video_path_dict[search_video_id])
+                video_path_dict[search_video_id]=video_path
             else :
                 result.append({
                     "video_path":video_path,
                     "isSuccess":False
                                })
+    for key, value in video_path_dict.items():
+        real_video_path_list.append(value)
+    for repeat in  repeat_path_list:
+        result.append({
+            "video_path": repeat,
+            "isSuccess": False
+        })
     if len(real_video_path_list)==0 :
         return result
     else :
+
+        startime0 = time.time()
         startime = time.time()
         videos, frames = GetVideoFrames(real_video_path_list)
+        endtime = time.time()
+        print("提取视频关键帧总耗时为" + str((endtime - startime) / 60) + ' 分钟')
+        startime = time.time()
         video_ids = videos['video_id_list']
         video_paths = videos['video_path_list']
         frame_ids = frames['frame_id_list']
@@ -158,23 +185,50 @@ def add_videos2milvus(collection,video_path_list,weight_path):
         USE_MYSQL_Frame(frame_ids,frame_positions,frame_paths)
         USE_MYSQL_FV(videos_frames_ids,frame_ids)
         endtime = time.time()
-        print("提取视频关键帧总耗时为" + str((endtime - startime) / 60) + ' 分钟')
-        startime = time.time()
-        features = GetFramesFeature(frame_paths, weight_path)
-        endtime = time.time()
-        print("将视频关键帧转换为特征向量总耗时为" + str((endtime - startime) / 60) + ' 分钟')
-        data = [frame_ids, features]
-        insert_data(collection, data)
-        # 创建Collection索引
-        build_index(collection, "")
-        # 加载Collection
-        collection.load()
+        print("将视频关键帧插入关系型数据库总耗时为" + str((endtime - startime) / 60) + ' 分钟')
+        print("提取视频关键帧并插入关系型数据库总耗时为" + str((endtime - startime0) / 60) + ' 分钟')
         for video_path in real_video_path_list:
             result.append({
                 "video_path":video_path,
                 "isSuccess":True
                            })
+        # 打开文件，使用 'w'（写入）模式
+        file = open("./data.txt", "w")
+        for item1, item2 in zip(frame_ids, frame_paths):
+            file.write(str(item1) + "," + str(item2) + "\n")
+        # 关闭文件
+        file.close()
         return result
+
+#参数定义：
+#collection:Milvus中的Collection
+#txt_path:存储需要送入Milvus数据库中的视频关键帧id和视频关键帧路径对应关系的文本的路径
+#weight_path:提取特征向量的模型的路径
+def Insert2Milvus(collection,txt_path,weight_path):
+    # 打开文件，使用 'r'（读取）模式
+    file = open(txt_path, "r")
+    # 逐行读取文件内容
+    lines = file.readlines()
+    # 关闭文件
+    file.close()
+    frame_ids = []#视频关键帧id列表
+    frame_paths = []#视频关键帧路径列表
+    for line in lines:
+        # 删除换行符
+        line = line.strip()
+        elements = line.split(",")
+        frame_ids.append(elements[0])
+        frame_paths.append(elements[1])
+    startime = time.time()
+    features = GetFramesFeature(frame_paths, weight_path)
+    endtime = time.time()
+    print("将视频关键帧转换为特征向量总耗时为" + str((endtime - startime) / 60) + ' 分钟')
+    data = [frame_ids, features]
+    insert_data(collection, data)
+    # 创建Collection索引
+    build_index(collection, "")
+    # 加载Collection
+    collection.load()
 
 #参数定义：
 #collection:Milvus中的Collection
