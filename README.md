@@ -9,6 +9,8 @@
 + 项目环境配置
   安装annconda, 后创建python版本为3.8的虚拟环境，之后在该虚拟环境内安装以下包
   - pip install torch==2.0.0 torchvision==0.15.1 torchaudio==2.0.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
+	- torch安装验证
+	![image](安装成功.png)
   - 安装opencv，pip install opencv-python==4.8.0.74 -i https://pypi.tuna.tsinghua.edu.cn/simple
   - 安装av, pip install av==10.0.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
   - 安装pymilvus, 版本要符合跟Milvus版本的对于关系，pip install pymilvus==2.2.9 -i https://pypi.tuna.tsinghua.edu.cn/simple 
