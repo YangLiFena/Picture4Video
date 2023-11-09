@@ -1,22 +1,13 @@
 import av
-import numpy as np
 from PIL import Image
 import torch
-import torchvision
 import torchvision.transforms as transforms
 import time
 import hashlib
 import os
-
-from torch import nn
-
+import onnxruntime as ort
 from utils.milvus_utils import search_data, insert_data, build_index
 from utils.mysql_utils import USE_MYSQL_QUERY,USE_MYSQL_DELETE,USE_MYSQL_Video,USE_MYSQL_FV,USE_MYSQL_Frame
-os.environ['TF_CPP_MIN_LOG_LEVEL']='3' # 配置tensorflow日志等级
-# 0：显示所有日志（默认等级）
-# 1：显示info、warning和error日志
-# 2：显示warning和error信息
-# 3：显示error日志信息
 
 # L2距离归一化为相似度
 def Normalized_Euclidean_Distance(L2,dim=2048):
@@ -43,8 +34,7 @@ def GetVideoFrames(videos_path_list):
 
     for cur_video_path in videos_path_list:
         if cur_video_path.split('/')[-1].split('.')[-1]=='mp4' :
-            video_name=cur_video_path.split('/')[-1].split('.')[0]
-
+            #video_name=cur_video_path.split('/')[-1].split('.')[0]
             container = av.open(cur_video_path)
             sha256_hash = compute_sha256(cur_video_path) #采用MD5对视频进行编码
             v_id = str(sha256_hash)
@@ -53,13 +43,11 @@ def GetVideoFrames(videos_path_list):
             if not os.path.exists(cur_video_keyframe_dir):
                 os.makedirs(cur_video_keyframe_dir)
             stream = container.streams.video[0]
-            frame_rate = stream.average_rate  #视频帧率
-            # print(frame_rate)
+            #frame_rate = stream.average_rate  #视频帧率
             stream.codec_context.skip_frame = 'NONKEY'
 
             for frame in container.decode(stream):
                 # print(frame.pts)
-                # print(512*frame_rate)
                 frame_path=cur_video_keyframe_dir + '/' + 'frame{:04d}.jpg'.format(frame.pts)
                 frame_path_list.append(frame_path)
                 frame.to_image().save(frame_path,quality=90)
@@ -85,19 +73,22 @@ def GetVideoFrames(videos_path_list):
 #输入参数定义：
 #frame_path_list：视频关键帧路径数组
 def GetFramesFeature(frame_path_list, weight_path):
-    # 加载ResNet50模型
-    starttime = time.time()
-    model = torchvision.models.resnet50(weights=None)
-    # 加载预训练的权重
-    model.load_state_dict(torch.load(weight_path))
-    model = nn.Sequential(*list(model.children())[:-2])
-    model=model.cuda()
-    endtime = time.time()
-    print("加载模型耗时", endtime - starttime, 's')
-    # 将模型置于评估模式
-    model.eval()
+    providers = [
+        ('CUDAExecutionProvider', {
+            'device_id': 0,
+            'arena_extend_strategy': 'kNextPowerOfTwo',
+            # 'gpu_mem_limit': 2 * 1024 * 1024 * 1024,
+            'cudnn_conv_algo_search': 'DEFAULT',
+            'do_copy_in_default_stream': True,
+        }),
+        'CPUExecutionProvider',
+    ]
+    so = ort.SessionOptions()
+    so.log_severity_level = 3
+    # 加载onnx模型到onnxruntime的推理
+    session = ort.InferenceSession(weight_path, so, providers=providers)
+    input_name = session.get_inputs()[0].name
 
-    # 定义数据预处理
     preprocess = transforms.Compose([
         transforms.Resize([224, 224]),
         transforms.ToTensor(),
@@ -110,23 +101,16 @@ def GetFramesFeature(frame_path_list, weight_path):
     for frame_path in frame_path_list:
         # 打开图像并进行预处理
         image = Image.open(frame_path).convert("RGB")
-        image = preprocess(image)
-
-        # 在第0个维度上增加batch维度
-        image = image.unsqueeze(0)
-        # print('='*30)
-        # print(image.shape)
+        image = preprocess(image).unsqueeze(0).numpy()
         # 使用模型提取特征
-        with torch.no_grad():
-            image=image.cuda()
-            feature = model(image)
-            # print(feature.shape)
-            feature = torch.nn.functional.adaptive_avg_pool2d(feature, (1,1))
-            # print(feature.shape)
-            feature = feature.cpu().flatten().numpy()
-            # print('='*30)
-            feature = feature.tolist()
-
+        # with torch.no_grad():
+            # 输入模型进行推理
+        feature = session.run(None, {input_name: image})
+        feature =torch.from_numpy(feature[0])
+        feature = torch.nn.functional.adaptive_avg_pool2d(feature, [1,1])
+        # feature = feature.cpu().flatten().numpy()
+        feature = feature.flatten().numpy()
+        feature = feature.tolist()
         feature_list.append(feature)
     endtime = time.time()
     print("提取特征向量耗时", endtime - starttime, 's')

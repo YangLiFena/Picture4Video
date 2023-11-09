@@ -2,7 +2,7 @@ import pymysql
 import pandas as pd
 
 mysql_host = '127.0.0.1'
-mysql_db = 'videostest'
+mysql_db = 'videos'
 mysql_user = 'root'
 mysql_pwd = '123456'
 
@@ -287,6 +287,13 @@ def USE_MYSQL_QUERYFrame(FrameID):
 # -------------------------select FrameID,FramePath from frame_table
 def USE_MYSQL_SELECTFrame():
     mysql = MYSQL()
+    FID=[]
+    FPATH = []
     FrameID, FramePath = mysql.select_frame_temp()  # 返回FrameID,FramePath
+    for id,path in zip(FrameID,FramePath):
+        i = id.decode()
+        j = path.decode()
+        FID.append(i)
+        FPATH.append(j)
     mysql.close()
-    return FrameID, FramePath
+    return FID, FPATH

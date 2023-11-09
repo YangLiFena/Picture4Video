@@ -11,10 +11,13 @@
   - pip install torch==2.0.0 torchvision==0.15.1 torchaudio==2.0.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
 	- torch安装验证<br>
 	![image](安装成功.png)
+  - 安装onnx， pip install -i https://pypi.tuna.tsinghua.edu.cn/simple onnx
+  - 安装onnxruntime-gpu, pip install onnxruntime-gpu -i https://pypi.tuna.tsinghua.edu.cn/simple
   - 安装opencv，pip install opencv-python==4.8.0.74 -i https://pypi.tuna.tsinghua.edu.cn/simple
   - 安装av, pip install av==10.0.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
   - 安装pymilvus, 版本要符合跟Milvus版本的对于关系，pip install pymilvus==2.2.9 -i https://pypi.tuna.tsinghua.edu.cn/simple 
   - 安装PyMySQL, pip install PyMySQL==1.1.0 -i https://pypi.tuna.tsinghua.edu.cn/simple
+  - 安装pyyaml，pip install pyyaml==6.0
 
 ### 项目结构
 + code/model 存放模型权重
