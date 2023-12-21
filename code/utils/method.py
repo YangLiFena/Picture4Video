@@ -10,7 +10,7 @@ from utils.milvus_utils import search_data, insert_data, build_index
 from utils.mysql_utils import USE_MYSQL_QUERY,USE_MYSQL_DELETE,USE_MYSQL_Video,USE_MYSQL_FV,USE_MYSQL_Frame
 
 # L2距离归一化为相似度
-def Normalized_Euclidean_Distance(L2,dim=2048):
+def Normalized_Euclidean_Distance(L2,dim=512):
     return 1/(1+L2/dim)
 
 def compute_sha256(file_path):
