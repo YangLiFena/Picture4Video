@@ -27,7 +27,7 @@
 + code/pics 存放待检索的的图片
 + code/utils 包存放使用到的工具类
 + code/Frames 存放所有视频的关键帧（该文件夹会自动生成）
-+ code/SFrames 存放待进行相似度检索的两个关键帧（该文件夹会自动生成）
++ code/SFrames 存放待进行相似度检索的两个关键帧
 + code/data.txt 存储frame_id和frame_path的对应关系，用于后续的Insert2Milvus.py。
 + code/Create.py 调用CreateAndInsert2Database方法提取视频关键帧并将相关信息保存至关系型数据库中。
 + code/Insert2Milvus.py 调用Insert2Milvus方法根据data.txt文件读取视频关键帧并将其转换成特征向量，传入Milvus数据库中存储。
