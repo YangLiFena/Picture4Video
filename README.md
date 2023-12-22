@@ -27,12 +27,14 @@
 + code/pics 存放待检索的的图片
 + code/utils 包存放使用到的工具类
 + code/Frames 存放所有视频的关键帧（该文件夹会自动生成）
++ code/SFrames 存放待进行相似度检索的两个关键帧（该文件夹会自动生成）
 + code/data.txt 存储frame_id和frame_path的对应关系，用于后续的Insert2Milvus.py。
 + code/Create.py 调用CreateAndInsert2Database方法提取视频关键帧并将相关信息保存至关系型数据库中。
 + code/Insert2Milvus.py 调用Insert2Milvus方法根据data.txt文件读取视频关键帧并将其转换成特征向量，传入Milvus数据库中存储。
 + code/Search.py 调用SearchVideoByOnePic方法进行以1张图片搜视频。
 + code/Delete.py 调用delete_frame_by_v_id方法根据视频id列表删除Milvus数据库中相应的视频的关键帧的特征向量。
 + code/VideoRetrieval.py 调用VideoRetrieval方法根据视频路径列表进行视频在库检索。
++ code/Similarity.py 计算两个关键帧之间的相似度。
 
 ### 参考资料
 + [企业级的以图搜图实战——milvus+minio+gradio+resnet(知乎帖子)](https://zhuanlan.zhihu.com/p/591672698)

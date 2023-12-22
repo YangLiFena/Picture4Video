@@ -309,3 +309,10 @@ def VideoRetrieval(video_path_list):
                     "isIn":True
                                })
     return result
+
+def Similarity(frame_path_list,weight_path):
+    feature_result=GetFramesFeature(frame_path_list,weight_path)
+    L2_distance= np.linalg.norm(np.array(feature_result[0]) - np.array(feature_result[1]))
+    # print(L2_distance)
+    # print( Normalized_Euclidean_Distance(L2_distance))
+    return Normalized_Euclidean_Distance(L2_distance)
