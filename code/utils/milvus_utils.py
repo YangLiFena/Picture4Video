@@ -11,7 +11,7 @@ def create_collection(collection_name):
     fields = [
         FieldSchema(name="key_id", dtype=DataType.INT64, is_primary=True, auto_id=True),
         FieldSchema(name="frame_id", dtype=DataType.VARCHAR, max_length=200),
-        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=1024),
+        FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=512),
     ]
     schema = CollectionSchema(fields, " ")
     return Collection(collection_name, schema, consistency_level="Strong")
