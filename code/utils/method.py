@@ -1,3 +1,5 @@
+import math
+
 import av
 from PIL import Image
 import torch
@@ -10,8 +12,9 @@ from utils.milvus_utils import search_data, insert_data, build_index
 from utils.mysql_utils import USE_MYSQL_QUERY,USE_MYSQL_DELETE,USE_MYSQL_Video,USE_MYSQL_FV,USE_MYSQL_Frame
 
 # L2距离归一化为相似度
-def Normalized_Euclidean_Distance(L2,dim=512):
-    return 1/(1+L2/dim)
+def Normalized_Euclidean_Distance(L2,dim=1024):
+    dim_sqrt = math.sqrt(dim)
+    return 1/(1+L2/dim_sqrt)
 
 def compute_sha256(file_path):
     sha256_hash = hashlib.sha256()
@@ -103,12 +106,11 @@ def GetFramesFeature(frame_path_list, weight_path):
         image = Image.open(frame_path).convert("RGB")
         image = preprocess(image).unsqueeze(0).numpy()
         # 使用模型提取特征
-        # with torch.no_grad():
-            # 输入模型进行推理
         feature = session.run(None, {input_name: image})
         feature =torch.from_numpy(feature[0])
         feature = torch.nn.functional.adaptive_avg_pool2d(feature, [1,1])
-        # feature = feature.cpu().flatten().numpy()
+        feature = feature.reshape((1,2, 1024))
+        feature = torch.mean(feature, dim=1)
         feature = feature.flatten().numpy()
         feature = feature.tolist()
         feature_list.append(feature)
