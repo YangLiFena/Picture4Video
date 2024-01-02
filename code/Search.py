@@ -4,7 +4,7 @@ from utils.milvus_utils import create_collection
 from utils.method import SearchVideoByOnePic
 from utils.mysql_utils import USE_MYSQL_QUERYFrame
 #初始化
-weight_path='./model/ResNet512.onnx'#提取特征模型权重的路径
+weight_path='./model/ResNet2048_v224.onnx'#提取特征模型权重的路径
 #设置Milvus连接参数
 connections.connect("default", host="127.0.0.1", port="19530",user="root",password="123456")
 #创建Collection
