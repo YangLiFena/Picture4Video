@@ -12,7 +12,7 @@ from utils.milvus_utils import search_data, insert_data, build_index
 from utils.mysql_utils import USE_MYSQL_QUERY,USE_MYSQL_DELETE,USE_MYSQL_Video,USE_MYSQL_FV,USE_MYSQL_Frame
 
 # L2距离归一化为相似度
-def Normalized_Euclidean_Distance(L2,dim=512):
+def Normalized_Euclidean_Distance(L2,dim=256):
     dim_sqrt = math.sqrt(dim)
     return 1/(1+L2/dim_sqrt)
 
@@ -109,7 +109,7 @@ def GetFramesFeature(frame_path_list, weight_path):
         feature = session.run(None, {input_name: image})
         feature =torch.from_numpy(feature[0])
         feature = torch.nn.functional.adaptive_avg_pool2d(feature, [1,1])
-        feature = feature.reshape((1,4, 512))
+        feature = feature.reshape((1,8, 256))
         feature = torch.mean(feature, dim=1)
         feature = feature.flatten().numpy()
         feature = feature.tolist()
