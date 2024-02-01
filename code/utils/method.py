@@ -1,6 +1,8 @@
 import math
+import sys
 
 import av
+import numpy as np
 from PIL import Image
 import torch
 import torchvision.transforms as transforms
@@ -12,9 +14,9 @@ from utils.milvus_utils import search_data, insert_data, build_index
 from utils.mysql_utils import USE_MYSQL_QUERY,USE_MYSQL_DELETE,USE_MYSQL_Video,USE_MYSQL_FV,USE_MYSQL_Frame
 
 # L2距离归一化为相似度
-def Normalized_Euclidean_Distance(L2,dim=256):
-    dim_sqrt = math.sqrt(dim)
-    return 1/(1+L2/dim_sqrt)
+# def Normalized_Euclidean_Distance(L2,dim=256):
+#     dim_sqrt = math.sqrt(dim)
+#     return 1/(1+L2/dim_sqrt)
 
 def compute_sha256(file_path):
     sha256_hash = hashlib.sha256()
@@ -107,11 +109,12 @@ def GetFramesFeature(frame_path_list, weight_path):
         image = preprocess(image).unsqueeze(0).numpy()
         # 使用模型提取特征
         feature = session.run(None, {input_name: image})
-        feature =torch.from_numpy(feature[0])
-        feature = torch.nn.functional.adaptive_avg_pool2d(feature, [1,1])
-        feature = feature.reshape((1,8, 256))
-        feature = torch.mean(feature, dim=1)
+        feature = torch.from_numpy(feature[0])
+        feature = torch.nn.functional.adaptive_avg_pool2d(feature, [1, 1])
+        feature = feature.reshape((1, 8, 256))  #重塑形状
+        feature = torch.mean(feature, dim=1)    #均值化
         feature = feature.flatten().numpy()
+        feature = feature / (np.sum(feature ** 2)) ** 0.5 #向量归一化
         feature = feature.tolist()
         feature_list.append(feature)
     endtime = time.time()
@@ -261,8 +264,8 @@ def SearchVideoByOnePic(collection,weight_path,pic_path,similarity,number):
         frame_id_list = []
         for result_item in results:
             for i, result in enumerate(result_item):
-                if Normalized_Euclidean_Distance(result.distance) >= similarity:
-                    distance_list.append(Normalized_Euclidean_Distance(result.distance))
+                if (result.distance) >= similarity:
+                    distance_list.append((result.distance))
                     frame_id_list.append(result.entity.get('frame_id'))
         return distance_list, frame_id_list
     elif similarity is not None and number is None :
@@ -273,8 +276,8 @@ def SearchVideoByOnePic(collection,weight_path,pic_path,similarity,number):
         frame_id_list = []
         for result_item in results:
             for i, result in enumerate(result_item):
-                if Normalized_Euclidean_Distance(result.distance) >= similarity:
-                    distance_list.append(Normalized_Euclidean_Distance(result.distance))
+                if (result.distance) >= similarity:
+                    distance_list.append((result.distance))
                     frame_id_list.append(result.entity.get('frame_id'))
         return distance_list, frame_id_list
     elif similarity is None and number is not None :
@@ -284,7 +287,7 @@ def SearchVideoByOnePic(collection,weight_path,pic_path,similarity,number):
         frame_id_list = []
         for result_item in results:
             for i, result in enumerate(result_item):
-                distance_list.append(Normalized_Euclidean_Distance(result.distance))
+                distance_list.append((result.distance))
                 frame_id_list.append(result.entity.get('frame_id'))
         return distance_list, frame_id_list
     else :
@@ -317,4 +320,4 @@ def Similarity(frame_path_list,weight_path):
     L2_distance= np.linalg.norm(np.array(feature_result[0]) - np.array(feature_result[1]))
     # print(L2_distance)
     # print( Normalized_Euclidean_Distance(L2_distance))
-    return Normalized_Euclidean_Distance(L2_distance)
+    return (L2_distance)

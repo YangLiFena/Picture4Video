@@ -18,7 +18,7 @@ def create_collection(collection_name):
 def build_index(collection, field_name):
     index = {
         "index_type": "IVF_FLAT",
-        "metric_type": "L2",
+        "metric_type": "IP",
         "params": {"nlist": 128},
     }
     collection.create_index("embeddings", index)
@@ -26,7 +26,7 @@ def build_index(collection, field_name):
 def search_data(collection, search_vectors,vector_field,limit=10,output_fields=[]):
     start_time = time.time()
     search_params = {
-        "metric_type": "L2",
+        "metric_type": "IP",
         "params": {"nprobe": 20},
     }
     result = collection.search(search_vectors, vector_field, search_params, limit=limit, output_fields=output_fields)
