@@ -317,7 +317,6 @@ def VideoRetrieval(video_path_list):
 
 def Similarity(frame_path_list,weight_path):
     feature_result=GetFramesFeature(frame_path_list,weight_path)
-    L2_distance= np.linalg.norm(np.array(feature_result[0]) - np.array(feature_result[1]))
-    # print(L2_distance)
-    # print( Normalized_Euclidean_Distance(L2_distance))
-    return (L2_distance)
+    Cos_distance= np.dot(np.array(feature_result[0]) , np.array(feature_result[1]))
+    # print(Cos_distance)
+    return Cos_distance
